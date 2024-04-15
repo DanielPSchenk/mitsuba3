@@ -15,9 +15,9 @@ static void PyLog(mitsuba::LogLevel level, const std::string &msg) {
 #endif
 
     std::string name =
-        nb::cast<const std::string>(nb::handle(f_code->co_name));
+        nb::borrow<nb::str>(nb::handle(f_code->co_name)).c_str();
     std::string filename =
-        nb::cast<const std::string>(nb::handle(f_code->co_filename));
+        nb::borrow<nb::str>(nb::handle(f_code->co_filename)).c_str();
     std::string fmt = "%s: %s";
     int lineno = PyFrame_GetLineNumber(frame);
 

@@ -1,5 +1,7 @@
 #include <mitsuba/core/distr_1d.h>
 #include <mitsuba/python/python.h>
+#include <nanobind/stl/pair.h>
+#include <nanobind/stl/tuple.h>
 
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/pair.h>
