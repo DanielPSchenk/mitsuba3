@@ -66,7 +66,7 @@ class ConfigBase:
                 'rfilter': { 'type': 'gaussian', 'stddev': 0.5 },
                 'width': self.res,
                 'height': self.res,
-                'sample_border': False,
+                'sample_border': True,
                 'pixel_format': 'rgb',
                 'component_format': 'float32',
             }
@@ -709,25 +709,14 @@ for integrator_name, handles_discontinuities in INTEGRATORS:
 @pytest.mark.parametrize('integrator_name, config', CONFIGS)
 def test01_rendering_primal(variants_all_ad_rgb, integrator_name, config):
     config = config()
-    #config.res = 1
     config.initialize()
     
-    #config.spp = 1
-    #dr.set_flag(dr.JitFlag.Debug, True)
-    #dr.set_flag(dr.JitFlag.SymbolicCalls, False)
-    #dr.set_flag(dr.JitFlag.SymbolicLoops, False)
-    #dr.set_flag(dr.JitFlag.SymbolicConditionals, False)
-
-    #config.integrator_dict['type'] = "path"
     config.integrator_dict['type'] = integrator_name
     integrator = mi.load_dict(config.integrator_dict, parallel=False)
 
     filename = join(output_dir, f"test_{config.name}_image_primal_ref.exr")
     image_primal_ref = mi.TensorXf(mi.Bitmap(filename))
     image = integrator.render(config.scene, seed=0, spp=config.spp)
-
-    #filename = join(os.getcwd(), f"test_{integrator_name}_{config.name}_image_primal.exr")
-    #mi.util.write_bitmap(filename, image)
 
     error = dr.abs(image - image_primal_ref) / dr.maximum(dr.abs(image_primal_ref), 2e-2)
     error_mean = dr.mean(error, axis=None)
