@@ -25,7 +25,7 @@ class ADIntegrator(mi.CppADIntegrator):
          visible surfaces. (Default: 5)
     """
 
-    def __init__(self, props = mi.Properties()):
+    def __init__(self, props):
         super().__init__(props)
 
         max_depth = props.get('max_depth', 6)
@@ -218,7 +218,7 @@ class ADIntegrator(mi.CppADIntegrator):
                 # retrieve the adjoint radiance
                 dr.set_grad(image, grad_in)
                 dr.enqueue(dr.ADMode.Backward, image)
-                dr.traverse(mi.Float, dr.ADMode.Backward)
+                dr.traverse(dr.ADMode.Backward)
 
             # We don't need any of the outputs here
             del ray, weight, pos, block, sampler
@@ -713,7 +713,7 @@ class RBIntegrator(ADIntegrator):
 
                 dr.set_grad(image, grad_in)
                 dr.enqueue(dr.ADMode.Backward, image)
-                dr.traverse(mi.Float, dr.ADMode.Backward)
+                dr.traverse(dr.ADMode.Backward)
 
             # Differentiate sample splatting and weight division steps to
             # retrieve the adjoint radiance (e.g. 'δL')
@@ -1052,7 +1052,7 @@ class PSIntegrator(ADIntegrator):
 
             dr.set_grad(ad_img, grad_in)
             dr.enqueue(dr.ADMode.Backward, ad_img)
-            dr.traverse(mi.Float, dr.ADMode.Backward)
+            dr.traverse(dr.ADMode.Backward)
 
         dr.eval()
 
@@ -1087,7 +1087,7 @@ class PSIntegrator(ADIntegrator):
 
             ΔL = self.proj_detail.eval_primary_silhouette_radiance_difference(
                 scene, sampler, ss, sensor_center, active=active)
-            active &= dr.any(dr.neq(ΔL, 0))
+            active &= dr.any(ΔL != 0)
 
         # ∂z/∂ⲡ * normal
         si = dr.zeros(mi.SurfaceInteraction3f)
@@ -1195,7 +1195,7 @@ class PSIntegrator(ADIntegrator):
             # Evaluate the discontinuous derivative integrand
             value, sensor_uv = self.proj_detail.eval_indirect_integrand(
                 scene, sensor, sample, sampler, preprocess=False)
-            active = dr.any(dr.neq(value, 0))
+            active = dr.any(value != 0)
 
             # Account for the guiding sampling density and spp
             value *= rcp_pdf_guiding * dr.rcp(spp)
